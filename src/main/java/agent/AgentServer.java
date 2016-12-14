@@ -1,5 +1,6 @@
 package agent;
 
+import common.Footprint;
 import common.Node;
 import discovery.DiscoveryServer;
 
@@ -10,6 +11,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.server.ExportException;
+import java.util.Vector;
 
 public class AgentServer implements IAgentServer{
 
@@ -25,7 +27,18 @@ public class AgentServer implements IAgentServer{
     private int serverPort;
     private Socket sendingSocket;
 
+    /*
+    Information about agents that visited the server (home node and what node it was sent to).
+     */
+    private Vector<Footprint> footprints;
+    /*
+    Agents that are currently residing at this server
+     */
+    private Vector<Agent> residingAgents;
+
     public AgentServer(int serverPort) {
+        this.footprints = new Vector<>();
+        this.residingAgents = new Vector<>();
         this.serverPort = serverPort;
         try
         {
@@ -58,6 +71,7 @@ public class AgentServer implements IAgentServer{
                 if (inputObject instanceof Agent)
                 {
                     Agent agent = (Agent)inputObject;
+                    this.residingAgents.add(agent);
                     agent.agentArrived(this, InetAddress.getLocalHost(), 8084);
                 }
             }
@@ -83,7 +97,13 @@ public class AgentServer implements IAgentServer{
 
     public void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort) {
 
-        System.out.println("Agent: " + agent + " wants to migrate home");
+        System.out.println("Agent: " + agent + " wants to migrate home/to next node");
+
+        Node nextNode = new Node(dstAddr, dstPort);
+        Footprint footprint = new Footprint(agent.getHomeSite(), nextNode);
+        this.footprints.add(footprint);
+
+        this.residingAgents.remove(agent);
 
         ObjectOutputStream out = null;
 
@@ -108,17 +128,23 @@ public class AgentServer implements IAgentServer{
         }
     }
 
+    public Vector getFootprints() {
+        return this.footprints;
+    }
+
+    public Vector getResidingAgents() {
+        return this.residingAgents;
+    }
+
     public static void main (String[] args) {
         try {
-            int serverPort = 0;
             if(args.length > 0) {
-                serverPort = Integer.parseInt(args[0]);
+                int serverPort = Integer.parseInt(args[0]);
+                new AgentServer(serverPort);
             }
             else {
                 throw new Exception("Invalid argument exception");
             }
-
-            new AgentServer(serverPort);
         } catch (Exception e) {
             System.out.println(e);
         }

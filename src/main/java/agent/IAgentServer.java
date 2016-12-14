@@ -1,6 +1,9 @@
 package agent;
 
+import common.Footprint;
+
 import java.net.InetAddress;
+import java.util.Vector;
 
 public interface IAgentServer
 {
@@ -11,5 +14,9 @@ public interface IAgentServer
        InetAddress dstAddr  - destination address
        int dstPort          - destination port
     */
-    public void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort);
+    void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort);
+
+    /* optional */
+    Vector<Footprint> getFootprints();
+    Vector<Agent> getResidingAgents();
 }

@@ -1,6 +1,9 @@
 package agent;
 
+import common.Node;
+
 import java.net.InetAddress;
+import java.util.Vector;
 
 public interface IAgent
 {
@@ -15,5 +18,10 @@ public interface IAgent
        InetAddress srvInetAddr  - the server's IP address
        int serverPort           - the server's server port
     */
-    public void agentArrived(AgentServer srv, InetAddress srvInetAddr, int serverPort);
+    void agentArrived(AgentServer srv, InetAddress srvInetAddr, int serverPort);
+
+    /*
+    An Agent keeps track of visited servers
+     */
+    Vector<Node> getVisitedServers();
 }
