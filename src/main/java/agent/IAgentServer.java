@@ -7,7 +7,7 @@ import java.util.Vector;
 
 public interface IAgentServer
 {
-    /*
+    /**
        The agent wants to be sent to inetAddr and port.
        Parameters:
        agent.Agent agent          - reference to an agent object ("this")
@@ -16,7 +16,13 @@ public interface IAgentServer
     */
     void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort);
 
-    /* optional */
+    /**
+     * Information about agents that visited the server (home node and what node it was sent to).
+     */
     Vector<Footprint> getFootprints();
+
+    /**
+     * Get list of agents that are currently residing at the server
+     */
     Vector<Agent> getResidingAgents();
 }

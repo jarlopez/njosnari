@@ -41,6 +41,11 @@ public class AgentClient {
         }
     }
 
+    /**
+     * Send agent to agentServer
+     * @param agentServer
+     * @throws IOException
+     */
     private void migrateAgentToServer(Node agentServer) throws IOException{
         ObjectOutputStream out = null;
 
@@ -61,6 +66,10 @@ public class AgentClient {
         }
     }
 
+    /**
+     * Opens up a listening socket and waits for an incoming agent to be received
+     * @throws IOException
+     */
     private void waitForAgentToReturn() throws IOException{
         ObjectInputStream in = null;
 

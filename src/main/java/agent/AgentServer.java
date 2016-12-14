@@ -18,7 +18,7 @@ public class AgentServer implements IAgentServer{
     /*
     An agent server accepts TCP socket connections on a server port to receive agents.
     This TCP port has the same port number as the one that is used for sending
-    discovery replies (see the figure below).
+    discovery replies.
      */
     public static final String DEFAULT_MULTICAST_ADDRESS = "230.0.0.88";
     public static final int DEFAULT_BASE_PORT = 8082;
@@ -27,11 +27,11 @@ public class AgentServer implements IAgentServer{
     private int serverPort;
     private Socket sendingSocket;
 
-    /*
+    /**
     Information about agents that visited the server (home node and what node it was sent to).
      */
     private Vector<Footprint> footprints;
-    /*
+    /**
     Agents that are currently residing at this server
      */
     private Vector<Agent> residingAgents;
@@ -95,6 +95,9 @@ public class AgentServer implements IAgentServer{
         }
     }
 
+    /**
+     The agent wants to be sent to inetAddr and port.
+     */
     public void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort) {
 
         System.out.println("Agent: " + agent + " wants to migrate home/to next node");
@@ -128,10 +131,16 @@ public class AgentServer implements IAgentServer{
         }
     }
 
+    /**
+     * @return footprints of agents that visited the server
+     */
     public Vector getFootprints() {
         return this.footprints;
     }
 
+    /**
+     * @return list of agents currently residing a server
+     */
     public Vector getResidingAgents() {
         return this.residingAgents;
     }
