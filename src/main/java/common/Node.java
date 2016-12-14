@@ -28,4 +28,12 @@ public class Node implements Serializable {
     public void setPort(int port) {
         this.port = port;
     }
+
+    @Override
+    public String toString() {
+        return "Node{" +
+                "address=" + address +
+                ", port=" + port +
+                '}';
+    }
 }

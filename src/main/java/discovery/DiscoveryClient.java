@@ -1,12 +1,11 @@
 package discovery;
 
 import common.Node;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.Vector;
 
 //multicast socket: http://download.java.net/jdk7/archive/b123/docs/api/java/net/MulticastSocket.html
@@ -14,11 +13,12 @@ import java.util.Vector;
 //http://stackoverflow.com/questions/18747134/getting-cant-assign-requested-address-java-net-socketexception-using-ehcache
 
 public class DiscoveryClient {
+    private static Logger log = LogManager.getLogger(DiscoveryClient.class.getName());
 
     private MulticastSocket mcastSocket;
     private InetAddress mcastAddr;
     private int basePort;
-    private Vector discoveryResults;
+    private Vector<Node> discoveryResults;
 
 
     public DiscoveryClient(InetAddress mcastAddr, int basePort) throws IOException, UnknownHostException {
@@ -26,7 +26,7 @@ public class DiscoveryClient {
           Open a MulticastSocket for sending and receiving discovery
           requests - and join the group.
         */
-        this.discoveryResults = new Vector();
+        this.discoveryResults = new Vector<>();
         this.mcastAddr = mcastAddr;
         this.basePort = basePort;
         this.mcastSocket = new MulticastSocket(basePort);
@@ -58,24 +58,24 @@ public class DiscoveryClient {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 mcastSocket.receive(packet);
                 String data = new String(buffer, 0, packet.getLength());
-                System.out.println("Client: we got a response: " + data);
-
-                if(data.equals("discovery-reply")) {
+                log.debug("Received response: " + data);
+                if (data.equals("discovery-reply")) {
                     this.discoveryResults.add(new Node(packet.getAddress(), packet.getPort()));
                 }
             }
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-
-            System.out.println("We got a socket timeout, let's print out all found servers");
-            for (Object res : this.discoveryResults) {
-                System.out.println(res.toString());
+        } catch (SocketTimeoutException e) {
+            StringBuilder sb = new StringBuilder("Received socket timeout; discovered servers:");
+            for (Node res : this.discoveryResults) {
+                sb.append("\n\t").append(res.toString());
             }
+            log.warn(sb.toString());
+        } catch (IOException e) {
+            log.error("Received IO exception: ");
+            e.printStackTrace();
         }
     }
 
-    public Vector getDiscoveryResult() {
+    public Vector<Node> getDiscoveryResult() {
         /* Return the Vector that contains (IP address, port)-pairs */
         return this.discoveryResults;
     }
