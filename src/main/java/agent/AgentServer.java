@@ -2,6 +2,7 @@ package agent;
 
 import common.Footprint;
 import common.Node;
+import discovery.DiscoveryClient;
 import discovery.DiscoveryServer;
 
 import java.io.IOException;
@@ -11,7 +12,11 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.server.ExportException;
+import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 public class AgentServer implements IAgentServer{
 
@@ -36,6 +41,11 @@ public class AgentServer implements IAgentServer{
      */
     private Vector<Agent> residingAgents;
 
+    /**
+     * List of neighbors
+     */
+    private Vector<Node> neighbours;
+
     public AgentServer(int serverPort) {
         this.footprints = new Vector<>();
         this.residingAgents = new Vector<>();
@@ -59,6 +69,10 @@ public class AgentServer implements IAgentServer{
         catch (Exception ex) {
             ex.printStackTrace();
         }
+
+        // run neighbour discovery periodically to keep track of active servers in the network
+        Timer time = new Timer();
+        time.schedule(new NeighbourDiscovery(), 0, TimeUnit.MINUTES.toMillis(1));
 
         while (true)
         {
@@ -132,6 +146,14 @@ public class AgentServer implements IAgentServer{
     }
 
     /**
+     * An agent server keeps track of neighbours, i.e. other agent servers.
+     * @return all agent servers neighbours
+     */
+    public Vector<Node> getNeighbours() {
+        return this.neighbours;
+    }
+
+    /**
      * @return footprints of agents that visited the server
      */
     public Vector getFootprints() {
@@ -156,6 +178,35 @@ public class AgentServer implements IAgentServer{
             }
         } catch (Exception e) {
             System.out.println(e);
+        }
+    }
+
+    /**
+     * Neighbour discovery process that is periodically repeated in order to keep track of active servers in the network.
+     */
+    private class NeighbourDiscovery extends TimerTask {
+
+        public NeighbourDiscovery() {
+            neighbours = new Vector<>();
+        }
+
+        public void run() {
+            try {
+                System.out.println("Running neighbour discovery");
+                DiscoveryClient discoveryClient = new DiscoveryClient(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT);
+                neighbours = discoveryClient.getDiscoveryResult();
+
+                if(!neighbours.isEmpty()) {
+
+                    // remove our self from the neighbour list
+                    neighbours.removeIf(n -> n.getPort() == serverPort);
+                    System.out.println("Neighbours: " + neighbours.toString());
+                }
+
+            } catch (Exception ex) {
+
+                System.out.println("error running thread " + ex.getMessage());
+            }
         }
     }
 }

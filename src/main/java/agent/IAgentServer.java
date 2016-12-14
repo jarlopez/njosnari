@@ -1,6 +1,7 @@
 package agent;
 
 import common.Footprint;
+import common.Node;
 
 import java.net.InetAddress;
 import java.util.Vector;
@@ -15,6 +16,11 @@ public interface IAgentServer
        int dstPort          - destination port
     */
     void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort);
+
+    /**
+     * An agent server keeps track of neighbours, i.e. other agent servers.
+     */
+    Vector<Node> getNeighbours();
 
     /**
      * Information about agents that visited the server (home node and what node it was sent to).
