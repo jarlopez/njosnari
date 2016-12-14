@@ -1,5 +1,9 @@
 package discovery;
 
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -7,13 +11,15 @@ import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 
 public class DiscoveryServer extends Thread {
+    private static Logger log = LogManager.getLogger(DiscoveryServer.class.getName());
+
     private static final int DEFAULT_SERVER_PORT = 8081;
     private static final int DEFAULT_BASE_PORT = 8082;
 
-    InetAddress mcastAddr;
-    int basePort;
-    MulticastSocket receiveSocket;
-    MulticastSocket replySocket;
+    private InetAddress mcastAddr;
+    private int basePort;
+    private MulticastSocket receiveSocket;
+    private MulticastSocket replySocket;
 
     public DiscoveryServer(InetAddress mcastAddr, int basePort, int serverPort)
             throws java.io.IOException, UnknownHostException {
@@ -35,6 +41,7 @@ public class DiscoveryServer extends Thread {
         /*
           Listen for discovery requests, receive and reply them.
         */
+        log.info("Running server on port " + basePort);
         try {
 
             while (true) {
@@ -42,10 +49,10 @@ public class DiscoveryServer extends Thread {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 receiveSocket.receive(packet);
                 String data = new String(buffer, 0, packet.getLength());
-                System.out.println("Server: we got a response: " + data);
+                log.debug("Received response: " + data);
 
                 if (data.equals("discovery")) {
-                    // reply
+                    log.debug("Replying to DISCOVERY message");
                     String reply = "discovery-reply";
                     DatagramPacket hi = new DatagramPacket(reply.getBytes(), reply.length(), mcastAddr, basePort);
                     replySocket.send(hi);
