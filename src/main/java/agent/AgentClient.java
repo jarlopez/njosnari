@@ -1,12 +1,13 @@
 package agent;
 
-import com.sun.tools.javac.util.Pair;
 import common.Node;
 import discovery.DiscoveryClient;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
@@ -16,24 +17,23 @@ import static agent.AgentServer.DEFAULT_BASE_PORT;
 public class AgentClient {
 
     Agent agent;
-    Socket clientSocket;
+    Socket sendingSocket;
 
-    public AgentClient() {
+    int listeningPort;
+    ServerSocket listeningSocket;
 
-        try
-        {
+    public AgentClient(int listeningPort) {
+
+        try {
+            this.listeningPort = listeningPort;
+
             //Discover agent servers
             DiscoveryClient discoveryClient = new DiscoveryClient(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT);
             Vector agentServers = discoveryClient.getDiscoveryResult();
 
             if(!agentServers.isEmpty()) {
-
-                Node agentServer = (Node) agentServers.get(0);
-                Agent agent = new Agent();
-                clientSocket = new Socket(agentServer.getAddress(), agentServer.getPort());
-                ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-                out.writeObject(agent);
-                out.flush();
+                migrateAgentToServer((Node) agentServers.get(0));
+                waitForAgentToReturn();
             }
         }
         catch (IOException ioEx) {
@@ -41,7 +41,68 @@ public class AgentClient {
         }
     }
 
+    private void migrateAgentToServer(Node agentServer) throws IOException{
+        ObjectOutputStream out = null;
+
+        try {
+            Agent agent = new Agent(new Node(InetAddress.getLocalHost(), this.listeningPort));
+            sendingSocket = new Socket(agentServer.getAddress(), agentServer.getPort());
+            out = new ObjectOutputStream(sendingSocket.getOutputStream());
+            out.writeObject(agent);
+            out.flush();
+        }
+        catch (IOException ioEx) {
+            ioEx.printStackTrace();
+        }
+        finally {
+            if(out != null) {
+                out.close();
+            }
+        }
+    }
+
+    private void waitForAgentToReturn() throws IOException{
+        ObjectInputStream in = null;
+
+        try {
+            listeningSocket = new ServerSocket(listeningPort);
+            Socket acceptSocket = listeningSocket.accept();
+            in = new ObjectInputStream(acceptSocket.getInputStream());
+            Object inputObject = in.readObject();
+
+            if (inputObject instanceof Agent)
+            {
+                Agent agent = (Agent)inputObject;
+                agent.printReport();
+            }
+
+        }
+        catch (IOException ioEx) {
+            ioEx.printStackTrace();
+        }
+        catch (ClassNotFoundException cEx) {
+            cEx.printStackTrace();
+        }
+        finally {
+            if(in != null) {
+                in.close();
+            }
+        }
+    }
+
     public static void main (String[] args) {
-        new AgentClient();
+        try {
+            int clientPort = 0;
+            if(args.length > 0) {
+                clientPort = Integer.parseInt(args[0]);
+            }
+            else {
+                throw new Exception("Invalid argument exception");
+            }
+
+            new AgentClient(clientPort);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
     }
 }

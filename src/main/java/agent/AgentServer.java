@@ -1,5 +1,6 @@
 package agent;
 
+import common.Node;
 import discovery.DiscoveryServer;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ public class AgentServer implements IAgentServer{
 
     private ServerSocket serverSocket;
     private int serverPort;
+    private Socket sendingSocket;
 
     public AgentServer(int serverPort) {
         this.serverPort = serverPort;
@@ -47,9 +49,10 @@ public class AgentServer implements IAgentServer{
 
         while (true)
         {
+            ObjectInputStream inputStream = null;
             try {
                 Socket clientSocket = serverSocket.accept();
-                ObjectInputStream inputStream = new ObjectInputStream(clientSocket.getInputStream());
+                inputStream = new ObjectInputStream(clientSocket.getInputStream());
                 Object inputObject = inputStream.readObject();
 
                 if (inputObject instanceof Agent)
@@ -65,12 +68,44 @@ public class AgentServer implements IAgentServer{
             {
                 cEx.printStackTrace();
             }
+            finally {
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    }
+                    catch (IOException ioEx) {
+                        ioEx.printStackTrace();
+                    }
+                }
+            }
         }
     }
 
     public void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort) {
 
-        System.out.println("Agent: " + agent + " want to migrate home");
+        System.out.println("Agent: " + agent + " wants to migrate home");
+
+        ObjectOutputStream out = null;
+
+        try {
+            sendingSocket = new Socket(dstAddr, dstPort);
+            out = new ObjectOutputStream(sendingSocket.getOutputStream());
+            out.writeObject(agent);
+            out.flush();
+        }
+        catch (IOException ioEx) {
+            ioEx.printStackTrace();
+        }
+        finally {
+            if(out != null) {
+                try {
+                    out.close();
+                }
+                catch (IOException ioEx) {
+                    ioEx.printStackTrace();
+                }
+            }
+        }
     }
 
     public static void main (String[] args) {

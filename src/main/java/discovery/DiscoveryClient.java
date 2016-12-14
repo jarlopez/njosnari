@@ -49,7 +49,7 @@ public class DiscoveryClient {
             String discoverMsg = "discovery";
 
             DatagramPacket hi = new DatagramPacket(discoverMsg.getBytes(), discoverMsg.length(), mcastAddr, basePort);
-            mcastSocket.setSoTimeout(10000);
+            mcastSocket.setSoTimeout(5000);
             mcastSocket.send(hi);
 
             while (true)
