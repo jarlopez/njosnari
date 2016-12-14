@@ -1,6 +1,5 @@
 package discovery;
 
-import com.sun.tools.javac.util.Pair;
 import common.Node;
 
 import java.io.IOException;
