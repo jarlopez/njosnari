@@ -24,6 +24,7 @@
     - GUI for choosing agent "type", decision-making strategies, etc.
 
 MAIN POINTS
+- Javadocs!
 - Write report! :)
 - CONFIRM EXPECTED TESTS -- different workstations?
     - If different, need to fully test in lab before demo
@@ -40,3 +41,12 @@ MAIN POINTS
 - Implement AT LEAST ONE fun demo (cop/robber, search/write)
 - GUI for triggering everything
     - clients need GIs
+
+TASK ALLOCATION
+Fannar
+    - Providing different services
+    - Extend servers
+    - Cleanup, thread-pools
+Johan
+    - Extend protocol to support discovery mechanisms
+    - Client GUIs
