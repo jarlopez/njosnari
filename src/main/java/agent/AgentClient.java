@@ -2,6 +2,8 @@ package agent;
 
 import common.Node;
 import discovery.DiscoveryClient;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,6 +17,7 @@ import static agent.AgentServer.DEFAULT_BASE_PORT;
 import static agent.AgentServer.DEFAULT_MULTICAST_ADDRESS;
 
 public class AgentClient {
+    private static Logger log = LogManager.getLogger(AgentClient.class.getName());
 
     private Agent agent;
     private Socket sendingSocket;
@@ -48,7 +51,7 @@ public class AgentClient {
         ObjectOutputStream out = null;
 
         try {
-            Agent agent = new Agent(new Node(InetAddress.getLocalHost(), this.listeningPort));
+            agent = new Agent(new Node(InetAddress.getLocalHost(), this.listeningPort));
             sendingSocket = new Socket(agentServer.getAddress(), agentServer.getPort());
             out = new ObjectOutputStream(sendingSocket.getOutputStream());
             out.writeObject(agent);
@@ -77,10 +80,13 @@ public class AgentClient {
             in = new ObjectInputStream(acceptSocket.getInputStream());
             Object inputObject = in.readObject();
 
-            if (inputObject instanceof Agent)
-            {
-                Agent agent = (Agent)inputObject;
-                agent.printReport();
+            if (inputObject instanceof Agent) {
+                Agent receivedAgent = (Agent)inputObject;
+                if (agent.equals(receivedAgent)) {
+                    agent.printReport();
+                } else {
+                    log.warn("Received suspicious agent when waiting for agent to return!");
+                }
             }
 
         }

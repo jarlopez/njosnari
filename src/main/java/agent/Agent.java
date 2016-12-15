@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.util.UUID;
 import java.util.Vector;
 
 public class Agent extends Thread implements IAgent, Serializable {
@@ -13,6 +14,7 @@ public class Agent extends Thread implements IAgent, Serializable {
 
     private Node homeSite;
     private Vector<Node> visitedServers;
+    private String id = UUID.randomUUID().toString();
 
     public Agent(Node homeSite){
         this.homeSite = homeSite;
@@ -49,6 +51,23 @@ public class Agent extends Thread implements IAgent, Serializable {
     }
 
     public void printReport() {
-        log.info("Carried out task at server. Task results: "); // TODO Prinnt results
+        log.info("Carried out task at server. Task results: "); // TODO Print results
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Agent agent = (Agent) o;
+
+        return homeSite.equals(agent.homeSite) && id.equals(agent.id);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = homeSite.hashCode();
+        result = 31 * result + id.hashCode();
+        return result;
     }
 }

@@ -36,4 +36,22 @@ public class Node implements Serializable {
                 ", port=" + port +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Node node = (Node) o;
+
+        if (port != node.port) return false;
+        return address != null ? address.equals(node.address) : node.address == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = address != null ? address.hashCode() : 0;
+        result = 31 * result + port;
+        return result;
+    }
 }
