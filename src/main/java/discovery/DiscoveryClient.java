@@ -1,6 +1,7 @@
 package discovery;
 
 import common.Node;
+import common.protocol.DiscoveryProtocol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,22 +46,20 @@ public class DiscoveryClient {
         */
 
         try {
-            String discoverMsg = "discovery";
-
-            DatagramPacket hi = new DatagramPacket(discoverMsg.getBytes(), discoverMsg.length(), mcastAddr, basePort);
+            String discoverMsg = DiscoveryProtocol.DISCOVERY_REQUEST.name();
+            DatagramPacket packet = new DatagramPacket(discoverMsg.getBytes(), discoverMsg.length(), mcastAddr, basePort);
             mcastSocket.setSoTimeout(5000);
-            mcastSocket.send(hi);
+            mcastSocket.send(packet);
 
-            while (true)
-            {
+            while (true)  {
                 // get group responses
                 byte[] buffer = new byte[1024];
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                mcastSocket.receive(packet);
-                String data = new String(buffer, 0, packet.getLength());
+                DatagramPacket recvPacket = new DatagramPacket(buffer, buffer.length);
+                mcastSocket.receive(recvPacket);
+                String data = new String(buffer, 0, recvPacket.getLength());
                 log.debug("Received response: " + data);
-                if (data.equals("discovery-reply")) {
-                    this.discoveryResults.add(new Node(packet.getAddress(), packet.getPort()));
+                if (data.equals(DiscoveryProtocol.DISCOVERY_REPLY.name())) {
+                    this.discoveryResults.add(new Node(recvPacket.getAddress(), recvPacket.getPort()));
                 }
             }
         } catch (SocketTimeoutException e) {

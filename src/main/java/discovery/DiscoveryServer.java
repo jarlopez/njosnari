@@ -1,6 +1,7 @@
 package discovery;
 
 
+import common.protocol.DiscoveryProtocol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -51,9 +52,9 @@ public class DiscoveryServer extends Thread {
                 String data = new String(buffer, 0, packet.getLength());
                 log.debug("Received response: " + data);
 
-                if (data.equals("discovery")) {
+                if (data.equals(DiscoveryProtocol.DISCOVERY_REQUEST.name())) {
                     log.debug("Replying to DISCOVERY message");
-                    String reply = "discovery-reply";
+                    String reply = DiscoveryProtocol.DISCOVERY_REPLY.name();
                     DatagramPacket hi = new DatagramPacket(reply.getBytes(), reply.length(), mcastAddr, basePort);
                     replySocket.send(hi);
                 }
