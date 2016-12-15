@@ -32,7 +32,8 @@ public class AgentClient {
             DiscoveryClient discoveryClient = new DiscoveryClient(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT);
             Vector agentServers = discoveryClient.getDiscoveryResult();
 
-            if(!agentServers.isEmpty()) {
+            if (!agentServers.isEmpty()) {
+                // TODO? Determine _which_ server to join based on some criteria
                 migrateAgentToServer((Node) agentServers.get(0));
                 waitForAgentToReturn();
             }
@@ -49,7 +50,6 @@ public class AgentClient {
      */
     private void migrateAgentToServer(Node agentServer) throws IOException{
         ObjectOutputStream out = null;
-
         try {
             agent = new Agent(new Node(InetAddress.getLocalHost(), this.listeningPort));
             sendingSocket = new Socket(agentServer.getAddress(), agentServer.getPort());
@@ -61,7 +61,7 @@ public class AgentClient {
             ioEx.printStackTrace();
         }
         finally {
-            if(out != null) {
+            if (out != null) {
                 out.close();
             }
         }
@@ -73,7 +73,6 @@ public class AgentClient {
      */
     private void waitForAgentToReturn() throws IOException{
         ObjectInputStream in = null;
-
         try {
             listeningSocket = new ServerSocket(listeningPort);
             Socket acceptSocket = listeningSocket.accept();
@@ -82,13 +81,12 @@ public class AgentClient {
 
             if (inputObject instanceof Agent) {
                 Agent receivedAgent = (Agent)inputObject;
-                if (agent.equals(receivedAgent)) {
-                    agent.printReport();
+                if (receivedAgent.equals(agent)) {
+                    receivedAgent.printReport();
                 } else {
-                    log.warn("Received suspicious agent when waiting for agent to return!");
+                    log.warn("Received suspicious agent when waiting for agent to return! " + receivedAgent.toString());
                 }
             }
-
         }
         catch (IOException ioEx) {
             ioEx.printStackTrace();

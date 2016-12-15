@@ -35,6 +35,8 @@ public class AgentServer implements IAgentServer{
     private int serverPort;
     private Socket sendingSocket;
 
+    private static final String secret = "shhh";
+
     /**
     Information about agents that visited the server (home node and what node it was sent to).
      */
@@ -178,6 +180,10 @@ public class AgentServer implements IAgentServer{
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    public void handshake(Agent agent) {
+        agent.handshake(secret);
     }
 
     /**
