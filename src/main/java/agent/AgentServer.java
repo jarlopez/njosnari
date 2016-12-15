@@ -4,6 +4,8 @@ import common.Footprint;
 import common.Node;
 import discovery.DiscoveryClient;
 import discovery.DiscoveryServer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,14 +13,13 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.rmi.server.ExportException;
-import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
 public class AgentServer implements IAgentServer{
+    private static Logger log = LogManager.getLogger(AgentServer.class.getName());
 
     /*
     An agent server accepts TCP socket connections on a server port to receive agents.
@@ -26,9 +27,11 @@ public class AgentServer implements IAgentServer{
     discovery replies.
      */
     public static final String DEFAULT_MULTICAST_ADDRESS = "230.0.0.88";
-    public static final int DEFAULT_BASE_PORT = 8082;
+    public static final int DEFAULT_BASE_PORT   = 8082;
+    public static final int DEFAULT_SERVER_PORT = 8084;
 
     private ServerSocket serverSocket;
+    private final Thread serverThread;
     private int serverPort;
     private Socket sendingSocket;
 
@@ -56,15 +59,14 @@ public class AgentServer implements IAgentServer{
         }
         catch (IOException ex)
         {
-            System.err.println("Could not listen on port: " + this.serverPort);
+            log.error("Could not listen on port " + serverPort);
             System.exit(1);
         }
-
-        System.out.println("The AgentServer is running...");
+        log.info("Running");
 
         // run the discovery service in new thread
         try {
-            new DiscoveryServer(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT, this.serverPort);
+            serverThread = new DiscoveryServer(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT, this.serverPort);
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -113,8 +115,7 @@ public class AgentServer implements IAgentServer{
      The agent wants to be sent to inetAddr and port.
      */
     public void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort) {
-
-        System.out.println("Agent: " + agent + " wants to migrate home/to next node");
+        log.info("Agent " + agent + " wants to migrate home/to next node");
 
         Node nextNode = new Node(dstAddr, dstPort);
         Footprint footprint = new Footprint(agent.getHomeSite(), nextNode);
@@ -169,15 +170,13 @@ public class AgentServer implements IAgentServer{
 
     public static void main (String[] args) {
         try {
-            if(args.length > 0) {
-                int serverPort = Integer.parseInt(args[0]);
-                new AgentServer(serverPort);
+            int serverPort = DEFAULT_SERVER_PORT;
+            if (args.length > 0) {
+                serverPort = Integer.parseInt(args[0]);
             }
-            else {
-                throw new Exception("Invalid argument exception");
-            }
-        } catch (Exception e) {
-            System.out.println(e);
+            new AgentServer(serverPort);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -192,19 +191,17 @@ public class AgentServer implements IAgentServer{
 
         public void run() {
             try {
-                System.out.println("Running neighbour discovery");
+                log.info("Running neighbour discovery");
                 DiscoveryClient discoveryClient = new DiscoveryClient(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT);
                 neighbours = discoveryClient.getDiscoveryResult();
 
-                if(!neighbours.isEmpty()) {
-
+                if (!neighbours.isEmpty()) {
                     // remove our self from the neighbour list
                     neighbours.removeIf(n -> n.getPort() == serverPort);
-                    System.out.println("Neighbours: " + neighbours.toString());
+                    log.info("Neighbours:" + neighbours.toString());
                 }
 
             } catch (Exception ex) {
-
                 System.out.println("error running thread " + ex.getMessage());
             }
         }

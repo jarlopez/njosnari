@@ -11,22 +11,20 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
-import static agent.AgentServer.DEFAULT_MULTICAST_ADDRESS;
 import static agent.AgentServer.DEFAULT_BASE_PORT;
+import static agent.AgentServer.DEFAULT_MULTICAST_ADDRESS;
 
 public class AgentClient {
 
-    Agent agent;
-    Socket sendingSocket;
+    private Agent agent;
+    private Socket sendingSocket;
 
-    int listeningPort;
-    ServerSocket listeningSocket;
+    private int listeningPort;
+    private ServerSocket listeningSocket;
 
     public AgentClient(int listeningPort) {
-
         try {
             this.listeningPort = listeningPort;
-
             //Discover agent servers
             DiscoveryClient discoveryClient = new DiscoveryClient(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT);
             Vector agentServers = discoveryClient.getDiscoveryResult();
@@ -101,17 +99,13 @@ public class AgentClient {
 
     public static void main (String[] args) {
         try {
-            int clientPort = 0;
-            if(args.length > 0) {
+            int clientPort = DEFAULT_BASE_PORT;
+            if (args.length > 0) {
                 clientPort = Integer.parseInt(args[0]);
             }
-            else {
-                throw new Exception("Invalid argument exception");
-            }
-
             new AgentClient(clientPort);
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 }
