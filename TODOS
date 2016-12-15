@@ -1,0 +1,42 @@
+- Define type of tasks
+    - R/W file writers
+    - Server has own type of data
+        - Task for agent: find information re: this type of thing
+        - If not found, go to next, etc... etc..
+        - Report findings
+        - Distributed search
+- Report results
+- Command pattern
+    - Allows server to "not care" about what is being executed
+- Look into protocol for service providers, filtering results, etc.
+    - In request: DISCOVERY_REQUEST | WEATHER_SERVICE, LOCATION_SERVICE |
+- Separating out worker threads into a pool
+- Make use of server interface for getting neighbors, footprints, existing agents, agent communication on server
+- Elaborate on service provider decision-making
+- Use server API to keep traversing around service providers (if any are left to visit, else go home)
+-
+- Fun game: cop and robber "tasks" and "services"
+- Make framework compatible with "any" tasks and services
+    - Overridable methods for server decision-making (which server/why)
+    - Override "action" to perform on server
+    - etc.
+- Support multiple agents from clients
+    - GUI for choosing agent "type", decision-making strategies, etc.
+
+MAIN POINTS
+- Write report! :)
+- CONFIRM EXPECTED TESTS -- different workstations?
+    - If different, need to fully test in lab before demo
+    - quickly discovering flaws/bugs/challenges/hinders and addressing before demo
+- Dynamic creation of agents with tasks
+- Service providers
+    - Decide why/how to choose server to visit (first, or next)
+- Expansion of discovery protocol
+- Split work into threads/runnables in pool
+- Look into design choices needed to make framework robust enough for "any" agent implementations
+    - Look to JADE for inspiration
+    ex: ACLMessage (comm between agents, service providers)
+    ex: Behaviors (programmable events/logic makers)
+- Implement AT LEAST ONE fun demo (cop/robber, search/write)
+- GUI for triggering everything
+    - clients need GIs
