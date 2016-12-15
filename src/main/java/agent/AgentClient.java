@@ -86,6 +86,8 @@ public class AgentClient {
                 } else {
                     log.warn("Received suspicious agent when waiting for agent to return! " + receivedAgent.toString());
                 }
+            } else {
+                log.error("Unknown object type received: " + inputObject.toString());
             }
         }
         catch (IOException ioEx) {
