@@ -1,12 +1,13 @@
 package discovery;
 
 import common.Node;
-import common.protocol.DiscoveryProtocol;
+import common.protocol.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.Arrays;
 import java.util.Vector;
 
 //multicast socket: http://download.java.net/jdk7/archive/b123/docs/api/java/net/MulticastSocket.html
@@ -46,20 +47,31 @@ public class DiscoveryClient {
         */
 
         try {
-            String discoverMsg = DiscoveryProtocol.DISCOVERY_REQUEST.name();
-            DatagramPacket packet = new DatagramPacket(discoverMsg.getBytes(), discoverMsg.length(), mcastAddr, basePort);
             mcastSocket.setSoTimeout(5000);
-            mcastSocket.send(packet);
+            Message discoveryMessage = new Message(Message.OP_DISCOVERY_REQUEST);
+            /* NOTE: We could append data to our discovery message to explicitly ask for specific services:
+                    String[] requestedServices = {DiscoveryServer.AGENT_SERVER_SERVICE, "some-other-service"};
+                    Message msg = new Message(Message.OP_DISCOVERY_REQUEST, String.join(Message.DELIMITER, requestedServices).getBytes());
+            */
+
+            discoveryMessage.send(mcastSocket, mcastAddr, basePort);
 
             while (true)  {
                 // get group responses
                 byte[] buffer = new byte[1024];
                 DatagramPacket recvPacket = new DatagramPacket(buffer, buffer.length);
                 mcastSocket.receive(recvPacket);
-                String data = new String(buffer, 0, recvPacket.getLength());
-                log.debug("Received response: " + data);
-                if (data.equals(DiscoveryProtocol.DISCOVERY_REPLY.name())) {
-                    this.discoveryResults.add(new Node(recvPacket.getAddress(), recvPacket.getPort()));
+
+                Message message = Message.parseMessage(recvPacket);
+                switch (message.opCode) {
+                    case Message.OP_DISCOVERY_RESPONSE:
+                        log.info("Received response!");
+                        if (message.length > 0) {
+                            String servicesStr = new String(message.data);
+                            String[] services = servicesStr.split(Message.DELIMITER);
+                            log.info("With data: " + Arrays.toString(services));
+                            this.discoveryResults.add(new Node(recvPacket.getAddress(), recvPacket.getPort()));
+                        }
                 }
             }
         } catch (SocketTimeoutException e) {

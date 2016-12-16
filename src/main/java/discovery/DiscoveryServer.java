@@ -1,7 +1,7 @@
 package discovery;
 
 
-import common.protocol.DiscoveryProtocol;
+import common.protocol.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,17 +10,22 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class DiscoveryServer extends Thread {
     private static Logger log = LogManager.getLogger(DiscoveryServer.class.getName());
 
     private static final int DEFAULT_SERVER_PORT = 8081;
     private static final int DEFAULT_BASE_PORT = 8082;
+    public static final String AGENT_SERVER_SERVICE = "agent-server";
 
     private InetAddress mcastAddr;
     private int basePort;
     private MulticastSocket receiveSocket;
     private MulticastSocket replySocket;
+
+    private ArrayList<String> services = new ArrayList<>();
 
     public DiscoveryServer(InetAddress mcastAddr, int basePort, int serverPort)
             throws java.io.IOException, UnknownHostException {
@@ -28,6 +33,7 @@ public class DiscoveryServer extends Thread {
           Open two MulticastSockets, one for receiving (basePort)
           and one for replying (serverPort) discovery requests.
         */
+        this.services.add(AGENT_SERVER_SERVICE);
         this.mcastAddr = mcastAddr;
         this.basePort = basePort;
         this.receiveSocket = new MulticastSocket(basePort);
@@ -49,14 +55,19 @@ public class DiscoveryServer extends Thread {
                 byte[] buffer = new byte[1024];
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 receiveSocket.receive(packet);
-                String data = new String(buffer, 0, packet.getLength());
-                log.debug("Received response: " + data);
 
-                if (data.equals(DiscoveryProtocol.DISCOVERY_REQUEST.name())) {
-                    log.debug("Replying to DISCOVERY message");
-                    String reply = DiscoveryProtocol.DISCOVERY_REPLY.name();
-                    DatagramPacket hi = new DatagramPacket(reply.getBytes(), reply.length(), mcastAddr, basePort);
-                    replySocket.send(hi);
+                Message message = Message.parseMessage(packet);
+                switch (message.opCode) {
+                    case Message.OP_DISCOVERY_REQUEST:
+                        log.info("Received request!");
+                        if (message.length > 0) {
+                            String servicesStr = new String(message.data);
+                            String[] services = servicesStr.split(Message.DELIMITER);
+                            log.info("With data: " + Arrays.toString(services));
+                            // TODO Could do server-side filtering to determine if OUR services intersect with requested
+                        }
+                        Message reply = new Message(Message.OP_DISCOVERY_RESPONSE, String.join(Message.DELIMITER, services).getBytes());
+                        reply.send(replySocket, mcastAddr, basePort);
                 }
             }
         } catch (IOException ex) {
