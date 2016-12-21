@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -16,6 +15,8 @@ import java.net.Socket;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class AgentServer implements IAgentServer{
@@ -35,7 +36,10 @@ public class AgentServer implements IAgentServer{
     private int serverPort;
     private Socket sendingSocket;
 
+    private ExecutorService executorService;
+
     private static final String secret = "shhh";
+    private static final int NEIGHBOUR_DISCOVERY_INTERVAL_MIN = 1;
 
     /**
     Information about agents that visited the server (home node and what node it was sent to).
@@ -55,6 +59,7 @@ public class AgentServer implements IAgentServer{
         this.footprints = new Vector<>();
         this.residingAgents = new Vector<>();
         this.serverPort = serverPort;
+        this.executorService = Executors.newFixedThreadPool(8);
         try
         {
             serverSocket = new ServerSocket(this.serverPort);
@@ -76,39 +81,16 @@ public class AgentServer implements IAgentServer{
 
         // run neighbour discovery periodically to keep track of active servers in the network
         Timer time = new Timer();
-        time.schedule(new NeighbourDiscovery(), 0, TimeUnit.MINUTES.toMillis(1));
+        time.schedule(new NeighbourDiscovery(), 0, TimeUnit.MINUTES.toMillis(NEIGHBOUR_DISCOVERY_INTERVAL_MIN));
 
         while (true)
         {
-            ObjectInputStream inputStream = null;
             try {
                 Socket clientSocket = serverSocket.accept();
-                inputStream = new ObjectInputStream(clientSocket.getInputStream());
-                Object inputObject = inputStream.readObject();
-
-                if (inputObject instanceof Agent)
-                {
-                    Agent agent = (Agent)inputObject;
-                    this.residingAgents.add(agent);
-                    agent.agentArrived(this, InetAddress.getLocalHost(), 8084);
-                }
+                this.executorService.execute(new AgentHandler(clientSocket, this, DEFAULT_SERVER_PORT));
             }
             catch (IOException ex) {
                 ex.printStackTrace();
-            }
-            catch (ClassNotFoundException cEx)
-            {
-                cEx.printStackTrace();
-            }
-            finally {
-                if (inputStream != null) {
-                    try {
-                        inputStream.close();
-                    }
-                    catch (IOException ioEx) {
-                        ioEx.printStackTrace();
-                    }
-                }
             }
         }
     }
@@ -164,6 +146,14 @@ public class AgentServer implements IAgentServer{
     }
 
     /**
+     * Add an agent to the list of residing agents
+     * @param agent
+     */
+    public void addResidingAgent(Agent agent) {
+        this.residingAgents.add(agent);
+    }
+
+    /**
      * @return list of agents currently residing a server
      */
     public Vector getResidingAgents() {
@@ -203,7 +193,8 @@ public class AgentServer implements IAgentServer{
 
                 if (!neighbours.isEmpty()) {
                     // remove our self from the neighbour list
-                    neighbours.removeIf(n -> n.getPort() == serverPort);
+                    InetAddress localAddress = InetAddress.getLocalHost();
+                    neighbours.removeIf(n -> n.getAddress().getHostAddress().equals(localAddress.getHostAddress()) && n.getPort() == serverPort);
                     log.info("Neighbours:" + neighbours.toString());
                 }
 
