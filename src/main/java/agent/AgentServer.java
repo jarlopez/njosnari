@@ -19,42 +19,80 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * An agent server accepts TCP socket connections on a server port to receive agents.
+ */
 public class AgentServer implements IAgentServer{
     private static Logger log = LogManager.getLogger(AgentServer.class.getName());
 
-    /*
-    An agent server accepts TCP socket connections on a server port to receive agents.
-    This TCP port has the same port number as the one that is used for sending
-    discovery replies.
+    /**
+     * The default UDP multicast group used for server discovery.
      */
     public static final String DEFAULT_MULTICAST_ADDRESS = "230.0.0.88";
+    /**
+     * The default port used for receiving UDP discovery messages.
+     */
     public static final int DEFAULT_BASE_PORT   = 8082;
+    /**
+     * The default port used for listening for incoming TCP messages
+     */
     public static final int DEFAULT_SERVER_PORT = 8084;
 
+    /**
+     * Used for accepting incoming migrating Agents.
+     */
     private ServerSocket serverSocket;
-    private final Thread serverThread;
+
+    /**
+     * Port used for accepting incoming migrating Agents.
+     */
     private int serverPort;
+
+    /**
+     * Main thread running the server discovery service.
+     */
+    private final Thread serverDiscoveryThread;
+
+    /**
+     * Socket used for sending away Agents who have completed their tasks.
+     */
     private Socket sendingSocket;
 
+    /**
+     * Threadpool for accepting incoming Agents.
+     */
     private ExecutorService executorService;
 
+    /**
+     * Server-specific secret message used to handshake with Agents.
+     */
     private static final String secret = "shhh";
+
+    /**
+     * Specifies how often to run neigbhour discovery.
+     */
     private static final int NEIGHBOUR_DISCOVERY_INTERVAL_MIN = 1;
 
     /**
-    Information about agents that visited the server (home node and what node it was sent to).
+     * Information about agents that visited the server (home node and what node it was sent to).
      */
     private Vector<Footprint> footprints;
     /**
-    Agents that are currently residing at this server
+     * Agents that are currently residing at this server.
      */
     private Vector<Agent> residingAgents;
 
     /**
-     * List of neighbors
+     * List of neighbour servers discovered so far.
      */
     private Vector<Node> neighbours;
 
+    /**
+     * Creates a new AgentServer by setting up the threadpool,
+     * scheduling the server discovery service, and running the main server loop.
+     * // TODO Split up run into own function?
+     * @param serverPort the port used for accepting incoming migrating Agents
+     */
     public AgentServer(int serverPort) {
         this.footprints = new Vector<>();
         this.residingAgents = new Vector<>();
@@ -73,7 +111,7 @@ public class AgentServer implements IAgentServer{
 
         // run the discovery service in new thread
         try {
-            serverThread = new DiscoveryServer(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT, this.serverPort);
+            serverDiscoveryThread = new DiscoveryServer(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT, this.serverPort);
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -96,7 +134,10 @@ public class AgentServer implements IAgentServer{
     }
 
     /**
-     The agent wants to be sent to inetAddr and port.
+     * Sends an Agent to its next desired server.
+     * @param agent the agent wishing to be transported
+     * @param dstAddr the destination address for the Agent's new home
+     * @param dstPort the destination port for the Agent's new home
      */
     public void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort) {
         log.info("Agent " + agent + " wants to migrate home/to next node");
@@ -132,29 +173,30 @@ public class AgentServer implements IAgentServer{
 
     /**
      * An agent server keeps track of neighbours, i.e. other agent servers.
-     * @return all agent servers neighbours
+     * @return all AgentServer neighbours
      */
     public Vector<Node> getNeighbours() {
         return this.neighbours;
     }
 
     /**
-     * @return footprints of agents that visited the server
+     * Gets all Agent footprints that have ever resided on this server.
+     * @return footprints of Agents that visited this server
      */
     public Vector getFootprints() {
         return this.footprints;
     }
 
     /**
-     * Add an agent to the list of residing agents
-     * @param agent
+     * Adds an agent to the list of residing agents
+     * @param agent the new Agent wishing to be added
      */
     public void addResidingAgent(Agent agent) {
         this.residingAgents.add(agent);
     }
 
     /**
-     * @return list of agents currently residing a server
+     * @return list of agents <i>currently</i> residing a server
      */
     public Vector getResidingAgents() {
         return this.residingAgents;
@@ -172,19 +214,31 @@ public class AgentServer implements IAgentServer{
         }
     }
 
+    /**
+     * Performs a handshake with an Agent using this server's secret.
+     * @param agent the agent to handshake with
+     */
     public void handshake(Agent agent) {
         agent.handshake(secret);
     }
 
     /**
-     * Neighbour discovery process that is periodically repeated in order to keep track of active servers in the network.
+     * Neighbour discovery process that is periodically repeated in order to
+     * keep track of active servers in the network.
      */
     private class NeighbourDiscovery extends TimerTask {
 
+        /**
+         * Creates a new task and initializes its neighbors.
+         */
         public NeighbourDiscovery() {
             neighbours = new Vector<>();
         }
 
+        /**
+         * Periodically dispatches a neighbour discovery service and adds the results to
+         * the list of known neighbours.
+         */
         public void run() {
             try {
                 log.info("Running neighbour discovery");

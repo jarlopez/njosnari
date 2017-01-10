@@ -6,6 +6,10 @@ import common.Node;
 import java.net.InetAddress;
 import java.util.Vector;
 
+/**
+ * Interface for an agent server which can order agents to migrate
+ * and track visited agent history.
+ */
 public interface IAgentServer
 {
     /**
@@ -15,20 +19,29 @@ public interface IAgentServer
        InetAddress dstAddr  - destination address
        int dstPort          - destination port
     */
+    /**
+     * Sends an agent to a new destination.
+     * @param agent the agent that wants to be relocated
+     * @param dstAddr the relocation destination address
+     * @param dstPort the relocation destination port
+     */
     void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort);
 
     /**
-     * An agent server keeps track of neighbours, i.e. other agent servers.
+     * Gets all known agent servers.
+     * @return the other agent servers known to this server
      */
     Vector<Node> getNeighbours();
 
     /**
-     * Information about agents that visited the server (home node and what node it was sent to).
+     * Gets the footprints of all visited agents.
+     * @return the footprints of all agents that have visited this server
      */
     Vector<Footprint> getFootprints();
 
     /**
-     * Get list of agents that are currently residing at the server
+     *  Gets a list of agents currently residing at this server.
+     * @return all agents currently residing on this server.
      */
     Vector<Agent> getResidingAgents();
 }

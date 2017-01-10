@@ -14,16 +14,39 @@ import java.util.Vector;
 //multicast wireless fix:
 //http://stackoverflow.com/questions/18747134/getting-cant-assign-requested-address-java-net-socketexception-using-ehcache
 
+/**
+ * Runs a timeout-driven discovery mechanism over UDP for finding
+ * agent service providers on a multicast address.
+ */
 public class DiscoveryClient {
     private static Logger log = LogManager.getLogger(DiscoveryClient.class.getName());
 
+    /**
+     * Socket used for sending and receiving discovery messages on.
+     */
     private MulticastSocket mcastSocket;
+    /**
+     * Multicast address for sending discovery messages to.
+     */
     private InetAddress mcastAddr;
+    /**
+     * Port used for sending discovery messages to.
+     */
     private int basePort;
+    /**
+     * Collection of discovered nodes.
+     */
     private Vector<Node> discoveryResults;
 
 
-    public DiscoveryClient(InetAddress mcastAddr, int basePort) throws IOException, UnknownHostException {
+    /**
+     * Creates a  new discovery client and opens a multicast socket for
+     * sending and receiving discovery requests.
+     * @param mcastAddr multicast address for sending discovery messages to
+     * @param basePort port used for sending discovery messages to
+     * @throws IOException if this client cannot join the multicast group or if the port is occupied
+     */
+    public DiscoveryClient(InetAddress mcastAddr, int basePort) throws IOException {
         /*
           Open a MulticastSocket for sending and receiving discovery
           requests - and join the group.
@@ -37,10 +60,15 @@ public class DiscoveryClient {
         discover(mcastSocket, basePort);
     }
 
+    /**
+     * Sends a discovery message to the multicast group and collects their responses,
+     * reporting the results after a timeout.
+     * @param mcastSocket
+     * @param basePort
+     */
     private void discover(MulticastSocket mcastSocket, int basePort) {
         /*
-          Send a discovery packet to the multicast group. The destination
-          port of the datagram packet to be sent as discovery packet must
+          The destination port of the datagram packet to be sent as discovery packet must
           be the basePort. Receive (work with timeout) discovery
           replies, if any. Extract the source IP address and port from each
           received discovery reply packet. Store this information in a Vector.
@@ -86,8 +114,11 @@ public class DiscoveryClient {
         }
     }
 
+    /**
+     * Gets the (IP-address, port) pairs of discovered nodes.
+     * @return all discovered nodes
+     */
     public Vector<Node> getDiscoveryResult() {
-        /* Return the Vector that contains (IP address, port)-pairs */
         return this.discoveryResults;
     }
 

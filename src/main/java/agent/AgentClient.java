@@ -16,15 +16,36 @@ import java.util.Vector;
 import static agent.AgentServer.DEFAULT_BASE_PORT;
 import static agent.AgentServer.DEFAULT_MULTICAST_ADDRESS;
 
+/**
+ * Represents a complete mobile, networked agent
+ * capable of sending the agent to servers and waiting for it to return.
+ */
 public class AgentClient {
     private static Logger log = LogManager.getLogger(AgentClient.class.getName());
 
+    /**
+     * This Client's agent.
+     */
     private Agent agent;
+    /**
+     * The socket used for transporting this Client's Agent
+     * to other servers.
+     */
     private Socket sendingSocket;
 
+    /**
+     * Port used for listening for an Agent returning home.
+     */
     private int listeningPort;
+    /**
+     * The socket used for listening for an Agent returning home.
+     */
     private ServerSocket listeningSocket;
 
+    /**
+     * Creates a new Client and sets up the discovery mechanism.
+     * @param listeningPort the port used for waiting for Agents returning home
+     */
     public AgentClient(int listeningPort) {
         try {
             this.listeningPort = listeningPort;
@@ -44,11 +65,11 @@ public class AgentClient {
     }
 
     /**
-     * Send agent to agentServer
-     * @param agentServer
+     * Sends agent to a remote server
+     * @param agentServer the remote server to transport the agent to
      * @throws IOException
      */
-    private void migrateAgentToServer(Node agentServer) throws IOException{
+    private void migrateAgentToServer(Node agentServer) throws IOException {
         ObjectOutputStream out = null;
         try {
             agent = new Agent(new Node(InetAddress.getLocalHost(), this.listeningPort));
@@ -68,10 +89,10 @@ public class AgentClient {
     }
 
     /**
-     * Opens up a listening socket and waits for an incoming agent to be received
+     * Opens up a listening socket and waits for an incoming agent to be received.
      * @throws IOException
      */
-    private void waitForAgentToReturn() throws IOException{
+    private void waitForAgentToReturn() throws IOException {
         ObjectInputStream in = null;
         try {
             listeningSocket = new ServerSocket(listeningPort);
