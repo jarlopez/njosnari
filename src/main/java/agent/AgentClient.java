@@ -1,5 +1,6 @@
 package agent;
 
+import agent.tasks.GatherFootprintTask;
 import common.Node;
 import discovery.DiscoveryClient;
 import org.apache.logging.log4j.LogManager;
@@ -72,16 +73,19 @@ public class AgentClient {
     private void migrateAgentToServer(Node agentServer) throws IOException {
         ObjectOutputStream out = null;
         try {
-            agent = new Agent(new Node(InetAddress.getLocalHost(), this.listeningPort));
+            // TODO allow GUI to select agent type
+//            agent = new Agent(new Node(InetAddress.getLocalHost(), this.listeningPort));
+            agent = new TaskedAgent(new Node(InetAddress.getLocalHost(), this.listeningPort));
+
+            ((TaskedAgent) agent).setTask(new GatherFootprintTask());
+
             sendingSocket = new Socket(agentServer.getAddress(), agentServer.getPort());
             out = new ObjectOutputStream(sendingSocket.getOutputStream());
             out.writeObject(agent);
             out.flush();
-        }
-        catch (IOException ioEx) {
+        } catch (IOException ioEx) {
             ioEx.printStackTrace();
-        }
-        finally {
+        } finally {
             if (out != null) {
                 out.close();
             }

@@ -5,12 +5,14 @@ package common;
  that created this agent) of the agent and the IP address and port where the agent has been sent.
  */
 
+import java.io.Serializable;
+
 /**
  * Represents the footprint of an agent which contains the home address
  * (IP address and home port of the agent client that created this agent)
  * of the agent and the IP address and port where the agent has been sent.
  */
-public class Footprint {
+public class Footprint implements Serializable {
 
     /**
      * An agent's original home.
