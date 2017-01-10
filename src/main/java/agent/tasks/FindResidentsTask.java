@@ -7,9 +7,16 @@ import common.Node;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * Task whose purpose is to get all other agent residents on a remote agent server.
+ */
 public class FindResidentsTask implements IAgentTask, Serializable {
     private Vector<String> results;
 
+    /**
+     * Asks the agent server context for all residing agents and stores them.
+     * @param context the remote agent server
+     */
     @Override
     public void execute(AgentServer context) {
         Vector<BaseAgent> residents = context.getResidingAgents();

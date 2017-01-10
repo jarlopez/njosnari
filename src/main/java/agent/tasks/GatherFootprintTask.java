@@ -8,6 +8,9 @@ import org.apache.logging.log4j.Logger;
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * Task which extracts all agent footprints at a remote agent server.
+ */
 public class GatherFootprintTask implements IAgentTask, Serializable {
     private static transient Logger log = LogManager.getLogger(GatherFootprintTask.class.getName());
 
@@ -16,6 +19,10 @@ public class GatherFootprintTask implements IAgentTask, Serializable {
      */
     private Vector<Footprint> results;
 
+    /**
+     * Stores the agent server footprints.
+     * @param context the remote agent server
+     */
     @Override
     public void execute(AgentServer context) {
         log.info("Gathering footprints from context");
