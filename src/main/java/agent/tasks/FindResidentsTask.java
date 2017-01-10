@@ -11,7 +11,7 @@ import java.util.Vector;
  * Task whose purpose is to get all other agent residents on a remote agent server.
  */
 public class FindResidentsTask implements IAgentTask, Serializable {
-    private Vector<String> results;
+    private Vector<String> results = new Vector<>();
 
     /**
      * Asks the agent server context for all residing agents and stores them.

@@ -22,4 +22,10 @@ public interface IAgentTask {
      * @return task results string
      */
     String getResultsString();
+
+    enum Type {
+        FindResidentsTask,
+        GatherFootprintTask,
+        SleeperTask
+    }
 }
