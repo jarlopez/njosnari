@@ -248,7 +248,13 @@ public class AgentServer implements IAgentServer {
                 if (!neighbours.isEmpty()) {
                     // remove our self from the neighbour list
                     InetAddress localAddress = InetAddress.getLocalHost();
-                    neighbours.removeIf(n -> n.getAddress().getHostAddress().equals(localAddress.getHostAddress()) && n.getPort() == serverPort);
+                    neighbours.removeIf(n ->
+                            (
+                                    n.getAddress().getHostAddress().equals(localAddress.getHostAddress()) ||
+                                    localAddress.isLoopbackAddress()
+                            ) &&
+                                    n.getPort() == serverPort
+                    );
                     log.info("Neighbours:" + neighbours.toString());
                 }
 
