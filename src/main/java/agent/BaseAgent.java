@@ -3,6 +3,7 @@ package agent;
 import common.Node;
 
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.Vector;
@@ -12,7 +13,6 @@ public abstract class BaseAgent implements IAgent, Serializable {
      * Collection of servers visited during the lifetime of this agent.
      */
     protected Vector<Node> visitedServers;
-
 
     /**
      * Original location of this agent.
@@ -51,6 +51,24 @@ public abstract class BaseAgent implements IAgent, Serializable {
      */
     public Node getHomeSite() {
         return homeSite;
+    }
+
+    /**
+     * Gets the entire list of all servers this Agent has visited so far.
+     * @return all visited servers
+     */
+    public Vector<Node> getVisitedServers() {
+        return this.visitedServers;
+    }
+
+    /**
+     * Updates the list of visited servers with the given one.
+     * @param srvInetAddr the new server's address
+     * @param serverPort the new server's port
+     */
+    public void addVisitedServer(InetAddress srvInetAddr, int serverPort) {
+        Node visitedServer = new Node(srvInetAddr, serverPort);
+        this.visitedServers.add(visitedServer);
     }
 
     /**

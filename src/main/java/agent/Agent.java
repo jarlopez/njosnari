@@ -6,7 +6,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.Serializable;
 import java.net.InetAddress;
-import java.util.Vector;
 
 /**
  * Represents a mobile agent capable of finding servers,
@@ -33,22 +32,13 @@ public class Agent extends BaseAgent implements Serializable {
      */
     public void agentArrived(AgentServer srv, InetAddress srvInetAddr, int serverPort) {
         log.info("Agent has arrived at server");
-        Node visitedServer = new Node(srvInetAddr, serverPort);
-        this.visitedServers.add(visitedServer);
+        addVisitedServer(srvInetAddr, serverPort);
         this.currentServer = srv;
 
         this.executeTask();
 
         // I think I am done with my task and want to be sent back home
         srv.agentMigrate(this, homeSite.getAddress(), homeSite.getPort());
-    }
-
-    /**
-     * Get sthe entire list of all servers this Agent has visited so far.
-     * @return all visited servers
-     */
-    public Vector<Node> getVisitedServers() {
-        return this.visitedServers;
     }
 
     @Override

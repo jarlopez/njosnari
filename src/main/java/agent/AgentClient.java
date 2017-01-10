@@ -104,7 +104,6 @@ public class AgentClient {
             in = new ObjectInputStream(acceptSocket.getInputStream());
             Object inputObject = in.readObject();
 
-            // TODO Determine if BaseAgent
             if (BaseAgent.class.isAssignableFrom(inputObject.getClass())) {
                 BaseAgent receivedAgent = (BaseAgent)inputObject;
                 if (receivedAgent.equals(agent)) {
