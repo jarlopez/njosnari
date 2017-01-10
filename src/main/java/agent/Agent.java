@@ -6,61 +6,21 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.Serializable;
 import java.net.InetAddress;
-import java.util.HashMap;
-import java.util.UUID;
 import java.util.Vector;
 
 /**
  * Represents a mobile agent capable of finding servers,
  * migrating to them, and executing tasks.
  */
-public class Agent extends Thread implements IAgent, Serializable {
+public class Agent extends BaseAgent implements Serializable {
     private static transient Logger log = LogManager.getLogger(Agent.class.getName());
 
     /**
-     * Original location of this agent.
-     */
-    private Node homeSite;
-    /**
-     * Collection of servers visited during the lifetime of this agent.
-     */
-    private Vector<Node> visitedServers;
-    /**
-     * Generic container for data collected during tasks.
-     */
-    private HashMap taskData;
-    /**
-     * Agent's unique identifier.
-     */
-    private String id = UUID.randomUUID().toString();
-
-    /**
-     * Creates a new Agent with a given home.
-     * The home should be populated with address and port.
-     * @param homeSite
+     * Creates a new agent and sets up structures.
+     * @param homeSite this agent's home
      */
     public Agent(Node homeSite){
-        this.homeSite = homeSite;
-        this.visitedServers = new Vector<>();
-        this.taskData = new HashMap();
-    }
-
-    /**
-     * Gets the home site of this Agent.
-     * The Agent returns to this home site when done with its tasks.
-     * @return this Agent's home.
-     */
-    public Node getHomeSite() {
-        return homeSite;
-    }
-
-    /**
-     * Updates the home site of this Agent.
-     * The Agent returns to this home site when done with its tasks.
-     * @param homeSite the new home site
-     */
-    public void setHomeSite(Node homeSite) {
-        this.homeSite = homeSite;
+        super(homeSite);
     }
 
     /**
@@ -75,11 +35,9 @@ public class Agent extends Thread implements IAgent, Serializable {
         log.info("Agent has arrived at server");
         Node visitedServer = new Node(srvInetAddr, serverPort);
         this.visitedServers.add(visitedServer);
+        this.currentServer = srv;
 
-        // TODO Perform work
-        // TODO Abstract away into "doWork()" method which can be overridden
-        log.info("Shaking hands");
-        srv.handshake(this);
+        this.executeTask();
 
         // I think I am done with my task and want to be sent back home
         srv.agentMigrate(this, homeSite.getAddress(), homeSite.getPort());
@@ -93,28 +51,15 @@ public class Agent extends Thread implements IAgent, Serializable {
         return this.visitedServers;
     }
 
-    /**
-     * Logs all task data collected during this Agent's lifetime.
-     */
-    public void printReport() {
-        log.info("Carried out task at server. Task results: " + taskData.toString()); // TODO Print results
+    @Override
+    public void executeTask() {
+        log.info("Shaking hands");
+        currentServer.handshake(this);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Agent agent = (Agent) o;
-
-        return homeSite.equals(agent.homeSite) && id.equals(agent.id);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = homeSite.hashCode();
-        result = 31 * result + id.hashCode();
-        return result;
+    public void displayReport() {
+        log.info("Carried out task at server. Task results: " + taskData.toString());
     }
 
     /**

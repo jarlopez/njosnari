@@ -45,9 +45,9 @@ public class AgentHandler implements Runnable {
             inputStream = new ObjectInputStream(clientSocket.getInputStream());
             Object inputObject = inputStream.readObject();
 
-            if (inputObject instanceof Agent)
+            if (inputObject instanceof BaseAgent)
             {
-                Agent agent = (Agent)inputObject;
+                BaseAgent agent = (BaseAgent)inputObject;
                 this.agentServer.addResidingAgent(agent);
                 agent.agentArrived(this.agentServer, InetAddress.getLocalHost(), 8084);
             }

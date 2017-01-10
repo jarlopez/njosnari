@@ -23,4 +23,14 @@ public interface IAgent
      * @return the list of all servers visited by this agent
      */
     Vector<Node> getVisitedServers();
+
+    /**
+     * Triggers this Agent's assigned task.
+     */
+    void executeTask();
+
+    /**
+     * Outputs the agent's task results.
+     */
+    void displayReport();
 }

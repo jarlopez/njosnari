@@ -80,4 +80,8 @@ public class Node implements Serializable {
         result = 31 * result + port;
         return result;
     }
+
+    public String displayName() {
+        return address.toString() + ":" + port;
+    }
 }

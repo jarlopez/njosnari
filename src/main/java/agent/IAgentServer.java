@@ -25,7 +25,7 @@ public interface IAgentServer
      * @param dstAddr the relocation destination address
      * @param dstPort the relocation destination port
      */
-    void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort);
+    void agentMigrate(BaseAgent agent, InetAddress dstAddr, int dstPort);
 
     /**
      * Gets all known agent servers.
@@ -43,5 +43,5 @@ public interface IAgentServer
      *  Gets a list of agents currently residing at this server.
      * @return all agents currently residing on this server.
      */
-    Vector<Agent> getResidingAgents();
+    Vector<BaseAgent> getResidingAgents();
 }

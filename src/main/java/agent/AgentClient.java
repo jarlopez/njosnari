@@ -26,7 +26,7 @@ public class AgentClient {
     /**
      * This Client's agent.
      */
-    private Agent agent;
+    private BaseAgent agent;
     /**
      * The socket used for transporting this Client's Agent
      * to other servers.
@@ -100,10 +100,11 @@ public class AgentClient {
             in = new ObjectInputStream(acceptSocket.getInputStream());
             Object inputObject = in.readObject();
 
-            if (inputObject instanceof Agent) {
-                Agent receivedAgent = (Agent)inputObject;
+            // TODO Determine if BaseAgent
+            if (BaseAgent.class.isAssignableFrom(inputObject.getClass())) {
+                BaseAgent receivedAgent = (BaseAgent)inputObject;
                 if (receivedAgent.equals(agent)) {
-                    receivedAgent.printReport();
+                    receivedAgent.displayReport();
                 } else {
                     log.warn("Received suspicious agent when waiting for agent to return! " + receivedAgent.toString());
                 }

@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * An agent server accepts TCP socket connections on a server port to receive agents.
  */
-public class AgentServer implements IAgentServer{
+public class AgentServer implements IAgentServer {
     private static Logger log = LogManager.getLogger(AgentServer.class.getName());
 
     /**
@@ -80,7 +80,7 @@ public class AgentServer implements IAgentServer{
     /**
      * Agents that are currently residing at this server.
      */
-    private Vector<Agent> residingAgents;
+    private Vector<BaseAgent> residingAgents;
 
     /**
      * List of neighbour servers discovered so far.
@@ -95,7 +95,7 @@ public class AgentServer implements IAgentServer{
      */
     public AgentServer(int serverPort) {
         this.footprints = new Vector<>();
-        this.residingAgents = new Vector<>();
+        this.residingAgents = new Vector<BaseAgent>();
         this.serverPort = serverPort;
         this.executorService = Executors.newFixedThreadPool(8);
         try
@@ -139,8 +139,8 @@ public class AgentServer implements IAgentServer{
      * @param dstAddr the destination address for the Agent's new home
      * @param dstPort the destination port for the Agent's new home
      */
-    public void agentMigrate(Agent agent, InetAddress dstAddr, int dstPort) {
-        log.info("Agent " + agent + " wants to migrate home/to next node");
+    public void agentMigrate(BaseAgent agent, InetAddress dstAddr, int dstPort) {
+        log.info("Agent " + agent.toString() + " wants to migrate home/to next node");
 
         Node nextNode = new Node(dstAddr, dstPort);
         Footprint footprint = new Footprint(agent.getHomeSite(), nextNode);
@@ -191,14 +191,14 @@ public class AgentServer implements IAgentServer{
      * Adds an agent to the list of residing agents
      * @param agent the new Agent wishing to be added
      */
-    public void addResidingAgent(Agent agent) {
+    public void addResidingAgent(BaseAgent agent) {
         this.residingAgents.add(agent);
     }
 
     /**
      * @return list of agents <i>currently</i> residing a server
      */
-    public Vector getResidingAgents() {
+    public Vector<BaseAgent> getResidingAgents() {
         return this.residingAgents;
     }
 
@@ -218,7 +218,7 @@ public class AgentServer implements IAgentServer{
      * Performs a handshake with an Agent using this server's secret.
      * @param agent the agent to handshake with
      */
-    public void handshake(Agent agent) {
+    public void handshake(BaseAgent agent) {
         agent.handshake(secret);
     }
 
