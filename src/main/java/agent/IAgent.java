@@ -1,6 +1,7 @@
 package agent;
 
 import common.Node;
+import gui.AgentClientListener;
 
 import java.net.InetAddress;
 import java.util.Vector;
@@ -32,5 +33,5 @@ public interface IAgent
     /**
      * Outputs the agent's task results.
      */
-    void displayReport();
+    void displayReport(AgentClientListener uiContext);
 }

@@ -1,6 +1,7 @@
 package agent;
 
 import common.Node;
+import gui.AgentClientListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,8 +49,12 @@ public class Agent extends BaseAgent implements Serializable {
     }
 
     @Override
-    public void displayReport() {
-        log.info("Carried out task at server. Task results: " + taskData.toString());
+    public void displayReport(AgentClientListener uiContext) {
+        String msg = "Carried out task at server. Task results: " + taskData.toString();
+        log.info(msg);
+        if (uiContext != null) {
+            uiContext.onMessage(msg);
+        }
     }
 
     /**

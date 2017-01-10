@@ -2,6 +2,7 @@ package agent;
 
 import agent.tasks.IAgentTask;
 import common.Node;
+import gui.AgentClientListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -60,8 +61,12 @@ public class TaskedAgent extends BaseAgent {
     }
 
     @Override
-    public void displayReport() {
-        log.info("Results: " + task.getResultsString());
+    public void displayReport(AgentClientListener uiContext) {
+        String msg = "Results: " + task.getResultsString();
+        log.info(msg);
+        if (uiContext != null) {
+            uiContext.onMessage(msg);
+        }
     }
 
     public void setTask(IAgentTask task) {

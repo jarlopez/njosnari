@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0"
+      prefWidth="543.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="gui.controllers.AgentController">
+    <ToolBar prefHeight="40.0" prefWidth="347.0">
+        <ChoiceBox fx:id="agentTypeChoiceBox" prefHeight="25.0" prefWidth="145.0"/>
+        <ChoiceBox fx:id="agentOptionChoiceBox" prefHeight="25.0" prefWidth="145.0"/>
+        <TextField fx:id="portTextField" prefHeight="25.0" prefWidth="66.0"/>
+
+        <Button alignment="CENTER" mnemonicParsing="false" onAction="#createAgent" text="Create" textAlignment="CENTER"/>
+        <Button alignment="CENTER" mnemonicParsing="false" fx:id="startButton" onAction="#startClientServices" text="Start" disable="true" textAlignment="CENTER"/>
+    </ToolBar>
+    <Label text="Log Output">
+        <font>
+            <Font name="System Bold" size="13.0"/>
+        </font>
+        <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+        </padding>
+    </Label>
+    <TextArea fx:id="logArea" prefHeight="361.0" prefWidth="373.0"/>
+</VBox>

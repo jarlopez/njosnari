@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.Vector;
 
-public abstract class BaseAgent implements IAgent, Serializable {
+public abstract class BaseAgent extends Thread implements IAgent, Serializable {
     /**
      * Collection of servers visited during the lifetime of this agent.
      */

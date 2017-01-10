@@ -1,8 +1,8 @@
 package agent;
 
-import agent.tasks.GatherFootprintTask;
 import common.Node;
 import discovery.DiscoveryClient;
+import gui.controllers.AgentController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,27 +42,22 @@ public class AgentClient {
      * The socket used for listening for an Agent returning home.
      */
     private ServerSocket listeningSocket;
+    private AgentController listener;
 
     /**
-     * Creates a new Client and sets up the discovery mechanism.
+     * Creates a new Client
      * @param listeningPort the port used for waiting for Agents returning home
      */
     public AgentClient(int listeningPort) {
-        try {
             this.listeningPort = listeningPort;
-            //Discover agent servers
-            DiscoveryClient discoveryClient = new DiscoveryClient(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT);
-            Vector agentServers = discoveryClient.getDiscoveryResult();
+    }
 
-            if (!agentServers.isEmpty()) {
-                // TODO? Determine _which_ server to join based on some criteria
-                migrateAgentToServer((Node) agentServers.get(0));
-                waitForAgentToReturn();
-            }
-        }
-        catch (IOException ioEx) {
-            ioEx.printStackTrace();
-        }
+    /**
+     * Updates this client's agent
+     * @param agent the new agent
+     */
+    public void setAgent(BaseAgent agent) {
+        this.agent = agent;
     }
 
     /**
@@ -73,21 +68,19 @@ public class AgentClient {
     private void migrateAgentToServer(Node agentServer) throws IOException {
         ObjectOutputStream out = null;
         try {
-            // TODO allow GUI to select agent type
-//            agent = new Agent(new Node(InetAddress.getLocalHost(), this.listeningPort));
-            agent = new TaskedAgent(new Node(InetAddress.getLocalHost(), this.listeningPort));
-
-            ((TaskedAgent) agent).setTask(new GatherFootprintTask());
-
             sendingSocket = new Socket(agentServer.getAddress(), agentServer.getPort());
             out = new ObjectOutputStream(sendingSocket.getOutputStream());
             out.writeObject(agent);
             out.flush();
         } catch (IOException ioEx) {
             ioEx.printStackTrace();
+            onException(ioEx.getMessage());
         } finally {
             if (out != null) {
                 out.close();
+            }
+            if (sendingSocket != null) {
+                sendingSocket.close();
             }
         }
     }
@@ -106,25 +99,34 @@ public class AgentClient {
 
             if (BaseAgent.class.isAssignableFrom(inputObject.getClass())) {
                 BaseAgent receivedAgent = (BaseAgent)inputObject;
-                if (receivedAgent.equals(agent)) {
-                    receivedAgent.displayReport();
-                } else {
-                    log.warn("Received suspicious agent when waiting for agent to return! " + receivedAgent.toString());
-                }
+                receivedAgent.displayReport(listener);
             } else {
-                log.error("Unknown object type received: " + inputObject.toString());
+                String err = "Unknown object type received: " + inputObject.toString();
+                log.error(err);
+                onException(err);
             }
         }
-        catch (IOException ioEx) {
-            ioEx.printStackTrace();
-        }
-        catch (ClassNotFoundException cEx) {
-            cEx.printStackTrace();
+        catch (Exception ex) {
+            onException(ex.getMessage());
         }
         finally {
             if(in != null) {
                 in.close();
             }
+            if (listeningSocket != null) {
+                listeningSocket.close();
+            }
+        }
+    }
+
+    private void onException(String ex) {
+        if (listener != null) {
+            listener.onException(ex);
+        }
+    }
+    private void onMessage(String message) {
+        if (listener != null) {
+            listener.onMessage(message);
         }
     }
 
@@ -138,5 +140,23 @@ public class AgentClient {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    /**
+     * Starts the discovery mechanism and assigns a server to this client's Agent.
+     */
+    public void run() throws IOException {
+        DiscoveryClient discoveryClient = new DiscoveryClient(InetAddress.getByName(DEFAULT_MULTICAST_ADDRESS), DEFAULT_BASE_PORT);
+        Vector agentServers = discoveryClient.getDiscoveryResult();
+
+        if (!agentServers.isEmpty()) {
+            // TODO? Determine _which_ server to join based on some criteria
+            migrateAgentToServer((Node) agentServers.get(0));
+            waitForAgentToReturn();
+        }
+    }
+
+    public void setListener(AgentController listener) {
+        this.listener = listener;
     }
 }
