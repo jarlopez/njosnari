@@ -88,15 +88,21 @@ public class AgentServer implements IAgentServer {
     private Vector<Node> neighbours;
 
     /**
+     * Name of the server, set from an program argument
+     */
+    private String serverName;
+
+    /**
      * Creates a new AgentServer by setting up the threadpool,
      * scheduling the server discovery service, and running the main server loop.
      * // TODO Split up run into own function?
      * @param serverPort the port used for accepting incoming migrating Agents
      */
-    public AgentServer(int serverPort) {
+    public AgentServer(int serverPort, String serverName) {
         this.footprints = new Vector<>();
         this.residingAgents = new Vector<BaseAgent>();
         this.serverPort = serverPort;
+        this.serverName = serverName;
         this.executorService = Executors.newFixedThreadPool(8);
         try
         {
@@ -202,13 +208,25 @@ public class AgentServer implements IAgentServer {
         return this.residingAgents;
     }
 
+    /**
+     * @return the server name
+     */
+    public String getServerName() {
+        return this.serverName;
+    }
+
     public static void main (String[] args) {
         try {
             int serverPort = DEFAULT_SERVER_PORT;
+            String serverName = "No Name Server";
             if (args.length > 0) {
                 serverPort = Integer.parseInt(args[0]);
+
+                if(args.length > 1) {
+                    serverName = args[1];
+                }
             }
-            new AgentServer(serverPort);
+            new AgentServer(serverPort, serverName);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

@@ -25,7 +25,7 @@ public class SleeperTask implements IAgentTask, Serializable {
     public void execute(AgentServer context) {
         try {
             Thread.sleep(SLEEPER_MILLIS);
-            results = "Slept at server for " + SLEEPER_MILLIS + "ms";
+            results = "Slept at " + context.getServerName() + " for " + SLEEPER_MILLIS + "ms";
         } catch (InterruptedException e) {
             results = "Interrupted during task execution";
             log.warn(results);

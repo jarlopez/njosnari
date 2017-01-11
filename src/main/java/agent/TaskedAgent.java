@@ -43,7 +43,7 @@ public class TaskedAgent extends BaseAgent {
      */
     @Override
     public void agentArrived(AgentServer srv, InetAddress srvInetAddr, int serverPort) {
-        log.info("Arrived at a server");
+        log.info("Arrived at a server " + srv.getServerName());
         addVisitedServer(srvInetAddr, serverPort);
         currentServer = srv;
         executeTask();

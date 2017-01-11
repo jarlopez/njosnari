@@ -12,6 +12,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Random;
 import java.util.Vector;
 
 import static agent.AgentServer.DEFAULT_BASE_PORT;
@@ -150,8 +151,14 @@ public class AgentClient {
         Vector agentServers = discoveryClient.getDiscoveryResult();
 
         if (!agentServers.isEmpty()) {
-            // TODO? Determine _which_ server to join based on some criteria
-            migrateAgentToServer((Node) agentServers.get(0));
+
+            // The Agent Client selects a random agent server to be its default server
+            Random random = new Random();
+            int numberOfServersFound = agentServers.size();
+            int randomServerNumber = random.nextInt(numberOfServersFound);
+            Node randomServer = (Node) agentServers.get(randomServerNumber);
+
+            migrateAgentToServer(randomServer);
             waitForAgentToReturn();
         }
     }
